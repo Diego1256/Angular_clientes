@@ -1,0 +1,220 @@
+<div class="container mt-3">
+    <div class="card">
+        <div class="card-body">
+ 
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h3>Controle de Clientes</h3>
+                    Aplicação Angular integrada com API REST Java (Spring Boot)
+                </div>
+                <div class="col-md-6 text-end">
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modal_cadastro">
+                        Cadastrar Cliente
+                    </button>
+                </div>
+            </div>
+ 
+            <hr />
+ 
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <input type="text" class="form-control" [(ngModel)]="filtro.nome"
+                        placeholder="Pesquisar Clientes por Nome" />
+                </div>
+            </div>
+ 
+            <table class="table table-sm table-responsive">
+                <thead>
+                    <tr>
+                        <th>Nome do cliente</th>
+                        <th>Email</th>
+                        <th>CPF</th>
+                        <th>Operações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        *ngFor="let c of clientes | paginate: { itemsPerPage: 5, currentPage: paginador }">
+                        <td>{{c.nome}}</td>
+                        <td>{{c.email}}</td>
+                        <td>{{c.cpf | mask : '000.000.000-00'}}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm"
+                                (click)="getCliente(c.idCliente)"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modal_edicao">
+                                Editar
+                            </button>
+                            &nbsp;
+                            <button class="btn btn-danger btn-sm"
+                                (click)="onDelete(c.idCliente)">
+                                Excluir
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4">
+                            Quantidade de clientes: {{(clientes).length}}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+ 
+            <div class="mt-3 text-center">
+                <pagination-controls (pageChange)="handlePageChange($event)" previousLabel="Página anterior"
+                    nextLabel="Próxima página">
+                </pagination-controls>
+            </div>
+ 
+        </div>
+    </div>
+</div>
+ 
+<!-- Janela modal para cadastro de cliente -->
+<div class="modal fade" id="modal_cadastro" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Cadastro de Cliente</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Preencha os campos para cadastrar o cliente:</p>
+ 
+                <div *ngIf="mensagemCadastro" class="alert alert-primary alert-dismissible fade show" role="alert">
+                    <strong>{{mensagemCadastro}}</strong>
+                    <button type="button" class="btn-close" aria-label="Close" (click)="mensagemCadastro = ''"></button>
+                </div>
+ 
+                <form [formGroup]="formCadastro" (ngSubmit)="onSubmit()">
+ 
+                    <div class="mb-3">
+                        <label>Nome do cliente:</label>
+                        <input type="text" class="form-control" placeholder="Digite aqui" formControlName="nome" />
+                        <div class="text-danger" *ngIf="cadastro.nome.touched && cadastro.nome.invalid">
+                            <span *ngIf="cadastro.nome.errors.required">
+                                Por favor, informe o nome do cliente.
+                            </span>
+                            <span *ngIf="cadastro.nome.errors.minlength">
+                                Por favor, informe no mínimo 8 caracteres.
+                            </span>
+                        </div>
+                    </div>
+ 
+                    <div class="mb-3">
+                        <label>Email do cliente:</label>
+                        <input type="text" class="form-control" placeholder="Digite aqui" formControlName="email" />
+                        <div class="text-danger" *ngIf="cadastro.email.touched && cadastro.email.invalid">
+                            <span *ngIf="cadastro.email.errors.required">
+                                Por favor, informe o email do cliente.
+                            </span>
+                            <span *ngIf="cadastro.email.errors.email">
+                                Por favor, informe um endereço de email válido.
+                            </span>
+                        </div>
+                    </div>
+ 
+                    <div class="mb-3">
+                        <label>CPF do cliente:</label>
+                        <input type="text" class="form-control" placeholder="Digite aqui" formControlName="cpf"
+                            mask="000.000.000-00" />
+                        <div class="text-danger" *ngIf="cadastro.cpf.touched && cadastro.cpf.invalid">
+                            <span *ngIf="cadastro.cpf.errors.required">
+                                Por favor, informe o cpf do cliente.
+                            </span>
+                            <span *ngIf="cadastro.cpf.errors.minlength || cadastro.cpf.errors.maxlength">
+                                Por favor, informe o cpf com 11 caracteres.
+                            </span>
+                        </div>
+                    </div>
+ 
+                    <div class="mb-3">
+                        <div class="d-grid">
+                            <input type="submit" class="btn btn-success" [disabled]="!formCadastro.valid"
+                                value="Realizar Cadastro" />
+                        </div>
+                    </div>
+ 
+                </form>
+ 
+            </div>
+        </div>
+    </div>
+</div>
+ 
+<!-- Janela modal para edição de cliente -->
+<div class="modal fade" id="modal_edicao" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Edição de Cliente</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Utilize o formulário para alterar os dados do cliente:</p>
+ 
+                <div *ngIf="mensagemEdicao" class="alert alert-primary alert-dismissible fade show" role="alert">
+                    <strong>{{mensagemEdicao}}</strong>
+                    <button type="button" class="btn-close" aria-label="Close" (click)="mensagemEdicao = ''"></button>
+                </div>
+ 
+                <form [formGroup]="formEdicao" (ngSubmit)="onUpdate()">
+ 
+                    <!-- campo oculto -->
+                    <input type="hidden" formControlName="idCliente"/>
+ 
+                    <div class="mb-3">
+                        <label>Nome do cliente:</label>
+                        <input type="text" class="form-control" placeholder="Digite aqui" formControlName="nome" />
+                        <div class="text-danger" *ngIf="edicao.nome.touched && edicao.nome.invalid">
+                            <span *ngIf="edicao.nome.errors.required">
+                                Por favor, informe o nome do cliente.
+                            </span>
+                            <span *ngIf="edicao.nome.errors.minlength">
+                                Por favor, informe no mínimo 8 caracteres.
+                            </span>
+                        </div>
+                    </div>
+ 
+                    <div class="mb-3">
+                        <label>Email do cliente:</label>
+                        <input type="text" class="form-control" placeholder="Digite aqui" formControlName="email" />
+                        <div class="text-danger" *ngIf="edicao.email.touched && edicao.email.invalid">
+                            <span *ngIf="edicao.email.errors.required">
+                                Por favor, informe o email do cliente.
+                            </span>
+                            <span *ngIf="edicao.email.errors.email">
+                                Por favor, informe um endereço de email válido.
+                            </span>
+                        </div>
+                    </div>
+ 
+                    <div class="mb-3">
+                        <label>CPF do cliente:</label>
+                        <input type="text" class="form-control" placeholder="Digite aqui" formControlName="cpf"
+                            mask="000.000.000-00" />
+                        <div class="text-danger" *ngIf="edicao.cpf.touched && edicao.cpf.invalid">
+                            <span *ngIf="edicao.cpf.errors.required">
+                                Por favor, informe o cpf do cliente.
+                            </span>
+                            <span *ngIf="edicao.cpf.errors.minlength || edicao.cpf.errors.maxlength">
+                                Por favor, informe o cpf com 11 caracteres.
+                            </span>
+                        </div>
+                    </div>
+ 
+                    <div class="mb-3">
+                        <div class="d-grid">
+                            <input type="submit" class="btn btn-primary" [disabled]="!formEdicao.valid"
+                                value="Salvar Alterações" />
+                        </div>
+                    </div>
+ 
+                </form>
+ 
+            </div>
+        </div>
+    </div>
+</div>
